@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use App\Http\Requests\LoginRequest;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -18,14 +20,28 @@ class LoginController extends Controller
     |
     */
 
-    use AuthenticatesUsers;
+    public function login(LoginRequest $request)
+    {
+        $credentials = $request->only('email', 'password');
 
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
-    protected $redirectTo = '/todo';
+        if (Auth::attempt($credentials)) {
+            return redirect()->route('todo.index')->with('success', 'Login successful!');
+        }
+
+        return back()->withErrors(['email' => 'Invalid credentials.']);
+    }
+
+    public function logout()
+    {
+        Auth::logout(); // Log the user out
+        return redirect('/')->with('success', 'You have been logged out successfully.');
+    }
+
+    public function showLoginForm()
+    {
+        return view('auth.login'); // Ensure this points to your registration Blade file
+    }
+
 
     /**
      * Create a new controller instance.
@@ -37,6 +53,5 @@ class LoginController extends Controller
         $this->middleware('guest')->except('logout');
         $this->middleware('auth')->only('logout');
     }
-
     
 }
