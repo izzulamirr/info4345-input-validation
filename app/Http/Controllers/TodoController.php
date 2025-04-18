@@ -33,6 +33,13 @@ class TodoController extends Controller
     public function store(Request $request)
     {
         $userId = Auth::user()->id;
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string', // Allow description to be optional
+            'status' => 'required|in:pending,completed',
+        ]);
+        
         $input = $request->input();
         $input['user_id'] = $userId;
         $todoStatus = Todo::create($input);
@@ -101,20 +108,18 @@ class TodoController extends Controller
     public function destroy(Todo $todo)
     {
         $userId = Auth::user()->id;
-        $todo = Todo::where(['user_id' => $userId, 'id' => $todo->id])->first();
-        $respStatus = $respMsg = '';
-        if (!$todo) {
-            $respStatus = 'error';
-            $respMsg = 'Todo not found';
-        }
-        $todoDelStatus = $todo->delete();
-        if ($todoDelStatus) {
-            $respStatus = 'success';
-            $respMsg = 'Todo deleted successfully';
-        } else {
-            $respStatus = 'error';
-            $respMsg = 'Oops something went wrong. Todo not deleted successfully';
-        }
-        return redirect('todo')->with($respStatus, $respMsg);
+        // Ensure the Todo belongs to the authenticated user
+    $todo = Todo::where(['user_id' => $userId, 'id' => $todo->id])->first();
+
+    if (!$todo) {
+        return redirect('todo')->with('error', 'Todo not found');
+    }
+
+    // Attempt to delete the Todo
+    if ($todo->delete()) {
+        return redirect('todo')->with('success', 'Todo deleted successfully');
+    }
+
+    return redirect('todo')->with('error', 'Oops, something went wrong. Todo not deleted successfully');
     }
 }
