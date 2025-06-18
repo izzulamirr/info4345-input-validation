@@ -29,7 +29,7 @@ class RegisterController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
+            'password' => ($validated['password']),
             'nickname' => $validated['nickname'] ?? null,
             'phone_no' => $validated['phone_no'] ?? null,
             'city' => $validated['city'] ?? null,
